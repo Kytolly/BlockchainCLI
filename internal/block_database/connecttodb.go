@@ -2,10 +2,10 @@ package block_database
 
 import (
 	"context"
-	"time"
 	"fmt"
 	"log/slog"
-
+	"time"
+	st "blockchain/pkg/setting"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -14,14 +14,14 @@ import (
 func ConnectToDB() (*context.CancelFunc, *mongo.Collection, error){
 	// TODO: 建立 MongoDB 连接并检查连接是否正常
 	// 传递cancel保证能在main中关闭它
-	uri := "mongodb://localhost:27017/"
+	uri := st.URI 
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancle := context.WithTimeout(context.Background(), time.Duration(st.DbTimeOutLimit)*time.Second)
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
 		fmt.Println(err)
-		return &cancel, nil, err
+		return &cancle, nil, err
 	}
 
 	// 这里需要取消defer
@@ -34,11 +34,12 @@ func ConnectToDB() (*context.CancelFunc, *mongo.Collection, error){
 	
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
 		fmt.Println(err)
-		return &cancel, nil,err
+		return &cancle, nil,err
 	}
 
-	clt := client.Database("MyBlockChain").Collection("block")
+	// 连接数据库时，若为空，立即建立一个查找最后区块hash值的document
+	clt := client.Database(st.DbName).Collection(st.DbCollectionName)
 
 	slog.Info("The BlockChain is connected MongoDB successfully!")
-	return &cancel, clt, nil
+	return &cancle, clt, nil
 }

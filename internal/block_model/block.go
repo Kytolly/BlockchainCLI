@@ -5,9 +5,9 @@ import (
 	//"crypto/sha256"
 	//"strconv"
 	bdb "blockchain/internal/block_database"
-	"bytes"
+	
 	"context"
-	"encoding/gob"
+
 	"fmt"
 	"log/slog"
 	"time"
@@ -16,12 +16,12 @@ import (
 )
 
 type BlockHeader struct {
-	Timestamp      int64	`bson:"timestamp"`  	// 创建区块时的当前时间戳
-	Nonce          int		`bson:"nonce"`    		// 随机数
-    PrevBlockHash  []byte 	`bson:"prev_block_hash"`// 前一个区块的哈希值
-//  Version        string 	`bson:"version"` 		// 区块版本
-//  MerkleRoot     string 	`bson:"merkle_root"` 	// 包含所有交易数据的默克根
-//  Difficulty     int    	`bson:"difficulty"` 	// 工作量证明难度
+	Timestamp      int64  	// 创建区块时的当前时间戳
+	Nonce          int		// 随机数
+    PrevBlockHash  []byte 	// 前一个区块的哈希值
+//  Version        string 	// 区块版本
+//  MerkleRoot     string 	// 包含所有交易数据的默克根
+//  Difficulty     int    	// 工作量证明难度
 }
 
 type Block struct{
@@ -84,15 +84,15 @@ func (bc *BlockChain) AddBlock(data string) {
     // bc.blocks = append(bc.blocks, newBlock)
 
 	var lasthash []byte
-	var lastBlock Block
-	if !bdb.FindLastBlock(bc.Db, &lastBlock){
-		fmt.Println("Empty Block Chain")
-        return
-	}
+	lastblock_serial := bdb.FindLastBlockSerial(bc.Db)
+	lastBlock := DeserializeBlock(lastblock_serial)
 	lasthash = lastBlock.Hash
 
 	newBlock := NewBlock(data, lasthash)
-	bc.Db.InsertOne(context.TODO(), newBlock)
+	newBlock_serial := newBlock.Serialize()	
+	newBlock_hash := newBlock.Hash[:]
+
+	bdb.InsertBlockToDb(bc.Db, newBlock_hash, newBlock_serial)
 	bc.tip = newBlock.Hash
 }
 
@@ -102,13 +102,14 @@ func NewBlockChain() (*context.CancelFunc, *BlockChain) {
 
 	// 打开一个DB
 	var tip []byte
-	cancle , db, _ := bdb.ConnectToDB()
+	cancle , db, _ := bdb.Inition()
 
-	// 检查db中是否存储了区块链，用Block接收
-	var lastBlock Block
-
-	if bdb.FindLastBlock(db, &lastBlock){
-		// 如果存在，设置尖端为最后一个区块的Hash
+	// 检查db中是否存储了区块链
+	lastblock_serial := bdb.FindLastBlockSerial(db)
+	if lastblock_serial != nil{
+		// 如果存在，上一次运行程序会把tip保存为doc
+		// 读取对应的doc，设置尖端为最后一个区块的Hash(上一次tip)
+		lastBlock := DeserializeBlock(lastblock_serial)
 		tip = lastBlock.Hash
 		slog.Info("The tip is be set to the last block hash...")
 		
@@ -116,32 +117,14 @@ func NewBlockChain() (*context.CancelFunc, *BlockChain) {
 	}else {
 		// 如果不存在，创建创世区块，创建存储桶
 		// 将区块保存其中，更新最后一个区块的Hash密钥
+		// 注意存入区块的是包含区块所有信息的一个字节序列
         genesis := NewGenesisBlock()
-        bdb.CreateBucket(db, genesis)
-		tip = genesis.Hash
+		genesis_serial := genesis.Serialize()
+		genesis_hash := genesis.Hash[:]
+
+        bdb.InsertBlockToDb(db, genesis_hash, genesis_serial)
+		tip = genesis_hash
 		slog.Debug("NewBlockChain:", "tip", fmt.Sprintf("%x", tip))
 	}
 	return cancle, &BlockChain{tip, db}
-}
-
-func(b *Block) Serialize()[]byte{
-	// TODO: 序列化区块
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
-	if err != nil{
-		fmt.Println(err)
-	}
-	return result.Bytes()
-}
-
-func DeserializeBlock(data []byte) *Block{
-	var block Block
-
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&block)
-	if err != nil{
-		fmt.Println(err)
-	}
-	return &block
 }

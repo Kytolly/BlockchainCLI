@@ -14,7 +14,7 @@ type CLI struct{
 
 func(cli *CLI) Run(){
 	slog.Info("Welcome to the blockchain CLI! Let's start with help.")
-	cli.printUsage()
+	// cli.printUsage()
 
 	var err error
 	cli.validateArgs()
@@ -25,7 +25,7 @@ func(cli *CLI) Run(){
 	addBlockData := addBlockCmd.String("data", "", "Block Data")
 
 	// 创建两个子命令
-	switch os.Args[1] {
+	switch os.Args[1]{
 	case "addblock":
 		err = addBlockCmd.Parse(os.Args[2:])
 	case "printchain":

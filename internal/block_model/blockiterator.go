@@ -1,8 +1,6 @@
 package block_model
 
 import (
-	//"context"
-	"fmt"
 	bdb "blockchain/internal/block_database"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -20,13 +18,10 @@ func(bc BlockChain) Iterator()*BlockChainIterator{
 }
 
 func(i *BlockChainIterator) Next() *Block{
-	// TODO: 迭代器的下一个区块，更新迭代器
-	var block *Block
-
-	if bdb.FindLastBlock(i.db, &block){
-		fmt.Printf("No Last Block Found!")
-		return nil
-	}
+	// TODO: 迭代器的前一个区块，更新迭代器
+	serial := bdb.FindBlockSerialByHash(i.db, i.currentHash)
+	block := DeserializeBlock(serial)
 	i.currentHash = block.PrevBlockHash
 	return block
 }
+
