@@ -21,6 +21,9 @@ var(
 	DbTimeOutLimit  	int
 	DbName      		string
 	DbCollectionName   	string
+
+	//AlgorithmVersion  	string
+	ChecksumLen  		int
 )
 
 func init(){
@@ -31,6 +34,7 @@ func init(){
 
 	loadServer(file)
 	loadDatabase(file)
+	loadWallet(file)
 	loadLog(file)
 }
 
@@ -47,6 +51,11 @@ func loadDatabase(file *ini.File) {
 	DbCollectionName=file.Section("database").Key("DbCollectionName").MustString("block")
 
 	URI = DbScheme + "://" + DbHost + ":" + DbPort
+}
+
+func loadWallet(file *ini.File) {
+	//AlgorithmVersion = file.Section("wallet").Key("AlgorithmVersion").MustString("0.0.0")
+	ChecksumLen 	 = file.Section("wallet").Key("ChecksumLen").MustInt(10)
 }
 
 func loadLog(file *ini.File){

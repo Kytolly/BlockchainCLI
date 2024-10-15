@@ -30,10 +30,11 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 
 func(pow *ProofOfWork) prepareData(nonce int) []byte{
 	// TODO: 组装需要进行 SHA256 哈希的数据作为hashcash的计数器
+	// 工作量证明必须考虑存储在区块中的交易，保证区块链作为交易存储的一致性和可靠性
 	data := bytes.Join(
 		[] []byte{
 			pow.block.PrevBlockHash,
-            pow.block.Data,
+            pow.block.HashTransactions(),
             utils.Int64ToHex(pow.block.Timestamp),
             utils.Int64ToHex(int64(nonce)),
 			utils.Int64ToHex(int64(targetBits)),
@@ -50,7 +51,7 @@ func(pow *ProofOfWork) Run() (int, []byte) {
 	nonce := 0
 
 	// fmt.Printf("Mining the block containing \"%s\"\n", pow.block.Data)
-	slog.Info("Mining the block containing: ","data",  pow.block.Data)
+	// slog.Info("Mining the block containing: ","data",  pow.block.Data)
 
 	for nonce < maxNonce {
 		data := pow.prepareData(nonce)
@@ -68,6 +69,7 @@ func(pow *ProofOfWork) Run() (int, []byte) {
 		slog.Info("(Proof of work)", "Hash", fmt.Sprintf("%x", hash), "NONCE", nonce)
 	}
 	slog.Info("A Block is mined successfully!")
+	fmt.Printf("A Block is mined successfully!\n")
 
 	return nonce, hash[:]
 }
