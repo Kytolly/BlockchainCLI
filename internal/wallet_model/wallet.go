@@ -2,11 +2,11 @@ package wallet_model
 
 import (
 	"crypto/ecdsa" 
-	//st "blockchain/pkg/setting"
+	st "blockchain/pkg/setting"
 	utils "blockchain/pkg/utils"
 )
 
-var version = byte(0x00)
+var version = []byte(st.AlgorithmVersion)
 
 type Wallet struct {
 	// 用私钥和公钥代表钱包所有者的身份
@@ -14,11 +14,7 @@ type Wallet struct {
 	PublicKey []byte  
 }
 
-type Wallets struct {
-	Wallets map[string]*Wallet // 采用地址字符串代表钱包
-}
-
-func NewWallets() *Wallet {
+func NewWallet() *Wallet {
 	//TODO: 初始化钱包
 	private, public := newKeyPair()
 	wallet := Wallet{PrivateKey: private, PublicKey: public}
@@ -31,7 +27,7 @@ func(w *Wallet) GetAddress()[]byte {
 	pubKeyHash := utils.HashPubKey(w.PublicKey)
 
 	// 地址生成算法的版本号添加在hash值前面
-	versionedPayload := append([]byte{version}, pubKeyHash...)
+	versionedPayload := append(version, pubKeyHash...)
 
 	checksum := checksum(versionedPayload)
 

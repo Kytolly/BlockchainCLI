@@ -1,8 +1,7 @@
 package transaction_model
 
 import(
-	utils "blockchain/pkg/utils"
-	st "blockchain/pkg/setting"
+	utils "blockchain/pkg/utils" 
 	"bytes"
 )
 
@@ -13,20 +12,22 @@ type TXOutput struct{
 	PubKeyHash    []byte    // 输出的公钥哈希值
 }
 
+func NewTXOutput(value int, address string) *TXOutput {
+	txo := &TXOutput{Value: value, PubKeyHash: nil}
+	txo.Lock([]byte(address)) 
+	return txo
+}
 func(out *TXOutput) Lock(address []byte) {
 	// TODO: 通过钱包的地址，获得公钥哈希值，进行上锁
-	// 向某人发送硬币时，我们只知道他们的地址
-
-	// 完整的未编码的地址包括版本号，公钥哈希值，校验和,需要去掉版本号和若干位校验和
-	pubKeyHash := utils.Base58Decode(address)
-	ChecksumLen := st.ChecksumLen
-	out.PubKeyHash = pubKeyHash[1:len(pubKeyHash)-ChecksumLen] 
+	// 向某人发送硬币时，我们只知道他们的地址 
+	pubKeyHash := utils.GetPubKeyHashInAddress(address)
+	out.PubKeyHash = pubKeyHash
 }
 
 func(out *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 	//TODO: 检查输出是否被锁定
 	//匹配成功就可以进一步操作
-	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
+	return bytes.Equal(out.PubKeyHash, pubKeyHash)
 }
 
 // func(out *TXOutput) CanBeUnlockedWith(unlockingData string)bool{

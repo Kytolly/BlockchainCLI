@@ -21,25 +21,6 @@ type BlockChain struct{
 	Db  *mongo.Collection
 }
 
-// 废弃，被MineBlock替代
-func (bc *BlockChain) AddBlock(transactions []*ts.Transaction) {
-    // prevBlock := bc.blocks[len(bc.blocks)-1]
-    // newBlock := NewBlock(data, prevBlock.Hash)
-    // bc.blocks = append(bc.blocks, newBlock)
-
-	var lasthash []byte
-	lastblock_serial := bdb.FindLastBlockSerial(bc.Db)
-	lastBlock := DeserializeBlock(lastblock_serial)
-	lasthash = lastBlock.Hash
-
-	// newBlock := NewBlock(data, lasthash)
-	newBlock := NewBlock(transactions, lasthash)
-	newBlock_serial := newBlock.Serialize()	
-	newBlock_hash := newBlock.Hash[:]
-
-	bdb.InsertBlockToDb(bc.Db, newBlock_hash, newBlock_serial)
-	bc.tip = newBlock.Hash
-}
 func (bc *BlockChain) MineBlock(transactions []*ts.Transaction) {
 	//TODO: 向区块链添加新区块
 	var lasthash []byte
@@ -89,6 +70,7 @@ func NewBlockChain(address string) (*context.CancelFunc, *BlockChain) {
 		// 创建创世区块之前，先创建egg：一个coinbase交易
 		cbtx := ts.NewCoinbaseTx(address, genesisCoinbaseData)
         genesis := NewGenesisBlock(cbtx)
+		slog.Debug("coinbase TX in address", "", address)
 
 		genesis_serial := genesis.Serialize()
 		genesis_hash := genesis.Hash[:]
@@ -97,6 +79,8 @@ func NewBlockChain(address string) (*context.CancelFunc, *BlockChain) {
 		tip = genesis_hash
 		slog.Debug("NewBlockChain:", "tip", fmt.Sprintf("%x", tip))
 	}
+	fmt.Printf("tip: %x\n", tip)
+	fmt.Println("New BlockChain has been build!")
 	return cancle, &BlockChain{tip, db}
 }
 

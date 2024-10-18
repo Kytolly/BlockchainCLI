@@ -17,7 +17,7 @@ func(in *TXInput) UsesKey(pubKeyHash []byte) bool {
 	// TODO：输入公钥的哈希值 是否和 引用输出的哈希值匹配
 	// 确保发送者只花费属于他们的硬币
 	lockingHash := utils.HashPubKey(in.PubKey) 
-	return bytes.Compare(lockingHash, pubKeyHash)==0
+	return bytes.Equal(lockingHash, pubKeyHash)
 }
 
 // func(in *TXInput) CanUnlockOutputWith(unlockingData string) bool{

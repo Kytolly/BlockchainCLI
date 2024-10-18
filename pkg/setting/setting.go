@@ -6,7 +6,7 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-var initFile = "../../configs/config.ini"
+var initFile = "/home/kytolly/Project/gowork/blockchain/configs/config.ini"
 
 var(
 	AppMode 		    string
@@ -22,8 +22,11 @@ var(
 	DbName      		string
 	DbCollectionName   	string
 
-	//AlgorithmVersion  	string
+	AlgorithmVersion  	string
 	ChecksumLen  		int
+	WalletFile          string
+
+	Subsidy             int
 )
 
 func init(){
@@ -35,6 +38,7 @@ func init(){
 	loadServer(file)
 	loadDatabase(file)
 	loadWallet(file)
+	loadTransaction(file)
 	loadLog(file)
 }
 
@@ -54,8 +58,13 @@ func loadDatabase(file *ini.File) {
 }
 
 func loadWallet(file *ini.File) {
-	//AlgorithmVersion = file.Section("wallet").Key("AlgorithmVersion").MustString("0.0.0")
+	AlgorithmVersion = file.Section("wallet").Key("AlgorithmVersion").MustString("0.0.1")
 	ChecksumLen 	 = file.Section("wallet").Key("ChecksumLen").MustInt(10)
+	WalletFile       = file.Section("wallet").Key("WalletFile").MustString("wallet.dat")
+}
+
+func loadTransaction(file *ini.File) {
+	Subsidy = file.Section("transaction").Key("Subsidy").MustInt(10)
 }
 
 func loadLog(file *ini.File){
