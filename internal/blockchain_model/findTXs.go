@@ -73,42 +73,42 @@ func(bc *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []ts.Transaction
 	return unspentTXs
 }
 
-func(bc *BlockChain) FindUTXO(pubKeyHash []byte) []ts.TXOutput{
-	//TODO：为计算余额，还需设计找到能被address锁定的UTXO
-	var UTXOs []ts.TXOutput
-	UTXs := bc.FindUnspentTransactions(pubKeyHash)
+// func(bc *BlockChain) FindUTXO(pubKeyHash []byte) []ts.TXOutput{
+// 	//TODO：为计算余额，还需设计找到能被address锁定的UTXO
+// 	var UTXOs []ts.TXOutput
+// 	UTXs := bc.FindUnspentTransactions(pubKeyHash)
 	
-	for _, tx := range UTXs{
-		for _, out := range tx.VOut{
-			if out.IsLockedWithKey(pubKeyHash) {
-				UTXOs = append(UTXOs, out)
-			}
-		}
-	}
-	return UTXOs
-}
+// 	for _, tx := range UTXs{
+// 		for _, out := range tx.VOut{
+// 			if out.IsLockedWithKey(pubKeyHash) {
+// 				UTXOs = append(UTXOs, out)
+// 			}
+// 		}
+// 	}
+// 	return UTXOs
+// }
 
-func(bc *BlockChain) FindSpendableOutputs(pubKeyHash []byte, amount int)(int, map[string][]int){
-	//TODO：找到所有未使用过的outputs,准备在新的交易花费它们，这些输出应该都是UTXO
-	unspendaleOutputs := make(map[string][]int)
-	unspentTXs := bc.FindUnspentTransactions(pubKeyHash)
-	acc := 0
+// func(bc *BlockChain) FindSpendableOutputs(pubKeyHash []byte, amount int)(int, map[string][]int){
+// 	//TODO：找到所有未使用过的outputs,准备在新的交易花费它们，这些输出应该都是UTXO
+// 	unspendaleOutputs := make(map[string][]int)
+// 	unspentTXs := bc.FindUnspentTransactions(pubKeyHash)
+// 	acc := 0
 
-	Work:
-	for _,tx := range unspentTXs{
-		txID :=hex.EncodeToString(tx.ID)
-		for outIdx, out:=range tx.VOut{
-			if out.IsLockedWithKey(pubKeyHash)&& acc < amount{
-				acc += out.Value
-				unspendaleOutputs[txID] = append(unspendaleOutputs[txID], outIdx)
-				if acc >= amount{
-					break Work
-				}
-			}
-		}
-	}
-	return acc, unspendaleOutputs
-} 
+// 	Work:
+// 	for _,tx := range unspentTXs{
+// 		txID :=hex.EncodeToString(tx.ID)
+// 		for outIdx, out:=range tx.VOut{
+// 			if out.IsLockedWithKey(pubKeyHash)&& acc < amount{
+// 				acc += out.Value
+// 				unspendaleOutputs[txID] = append(unspendaleOutputs[txID], outIdx)
+// 				if acc >= amount{
+// 					break Work
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return acc, unspendaleOutputs
+// } 
 
 func(bc *BlockChain) FindTransaction(ID []byte)(ts.Transaction, error){
 	// TODO：通过ID查找一笔交易
@@ -142,4 +142,8 @@ func(bc *BlockChain) FindMapOfPrevTransactions(tx *ts.Transaction)map[string]ts.
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
 	return prevTXs
+}
+
+func(bc *BlockChain) FindUTXO() map[string]ts.TXOutputs {
+	return nil
 }

@@ -33,6 +33,7 @@ var(
 	GenesisCoinbaseData string
 	ChainDbFile 		string	
 	BlockBucket         string
+	UTXOBucketName      string
 )
 
 func init(){
@@ -88,4 +89,5 @@ func loadBlockchain(file *ini.File){
 	GenesisCoinbaseData = file.Section("blockchain").Key("GenesisCoinbaseData").MustString("Genesis Block!")
 	ChainDbFile         = file.Section("blockchain").Key("ChainDbFilename").MustString("chain.db")
 	BlockBucket         = file.Section("blockchain").Key("BlockBucket").MustString("block")
+	UTXOBucketName 	 	= file.Section("blockchain").Key("UTXOBucket").MustString("chainstate")
 }

@@ -20,7 +20,7 @@ type BlockChain struct{
 	db  *bolt.DB
 }
 
-func (bc *BlockChain) MineBlock(transactions []*ts.Transaction) {
+func (bc *BlockChain) MineBlock(transactions []*ts.Transaction)*bm.Block {
 	//TODO: 向区块链添加新区块
 	var lasthash []byte
 	// 验证发生在交易进入区块之前
@@ -61,6 +61,7 @@ func (bc *BlockChain) MineBlock(transactions []*ts.Transaction) {
 		slog.Error(err.Error())
 	}
 	bc.tip = newBlock.Hash
+	return newBlock
 }
 
 func NewBlockChain(address string) *BlockChain {
@@ -107,4 +108,8 @@ func NewBlockChain(address string) *BlockChain {
 	}
 	bc := BlockChain{tip, db}
 	return &bc
+}
+
+func(bc *BlockChain) Close(){
+	bc.db.Close()
 }

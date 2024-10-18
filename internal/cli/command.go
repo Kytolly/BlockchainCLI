@@ -34,15 +34,21 @@ func(cli *CLI) validateArgs(){
 
 func(cli *CLI) newChain(addressData *string)(*bcm.BlockChain){
 	bc := bcm.NewBlockChain(*addressData) 
+	defer bc.Close()
+	UTXOSet := bcm.UTXOSet{BC: bc}
+	UTXOSet.ReIndex()
+
 	return bc
 }
 
 func(cli *CLI) getBalance(address string)int{
 	bc := bcm.NewBlockChain(address)
+	u := bcm.UTXOSet{BC: bc}
 
 	balance := 0
 	pubKeyHash := utils.GetPubKeyHashInAddress([]byte(address))
-	UTXOs := bc.FindUTXO(pubKeyHash)
+	// UTXOs := bc.FindUTXO(pubKeyHash)
+	UTXOs := u.FindUTXO(pubKeyHash)
 	
 	for _, out := range UTXOs{
 		balance += out.Value
@@ -92,16 +98,23 @@ func(cli *CLI) printChain(){
 func(cli *CLI) send(from, to string, amount int) {
 	// TODO：命令行接管发送交易，利用区块链的挖矿功能
 	bc := bcm.NewBlockChain(from) 
-	
+	UTXOSet := bcm.UTXOSet{BC: bc}
+	defer bc.Close()
+
 	//创建一个通用交易，将挖掘的区块添加到区块链中
 	//此处不符合比特币的设计规范，还需建立内存池等待矿工挖矿
-	tx := bc.NewUTXOTransaction(from, to, amount)
+	tx := bc.NewUTXOTransaction(from, to, amount, &UTXOSet)
+	cbTx := ts.NewCoinbaseTx(from, "")
+	txs := []*ts.Transaction{cbTx, tx}
 	if tx == nil {
 		slog.Info("No transactions to mine")
 		slog.Info("Failed Sending!")
 		return 
 	}
-	bc.MineBlock([]*ts.Transaction{tx})
+
+	newBlock := bc.MineBlock(txs)
+	UTXOSet.Update(newBlock)
+
 	slog.Info("Success sending!")
 }
 

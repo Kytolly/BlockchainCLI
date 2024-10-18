@@ -10,10 +10,11 @@ import (
 	"log/slog"
 )
 
-func(bc *BlockChain) NewUTXOTransaction(from, to string, amount int)*ts.Transaction {
+func(bc *BlockChain) NewUTXOTransaction(from, to string, amount int, u *UTXOSet)*ts.Transaction {
 	//TODO:创建一个通用的交易
 	var inputs []ts.TXInput
 	var outputs []ts.TXOutput
+
 	wallets, err := wt.NewWallets()
 	if err != nil {
 		slog.Error("Cannot generate a wallet!")
@@ -26,7 +27,8 @@ func(bc *BlockChain) NewUTXOTransaction(from, to string, amount int)*ts.Transact
 	slog.Debug("to PubKeyHash:", "", string(toPubKeyHash))
 
 	// 找到所有未使用的outputs确保能够支付给定amount
-	acc, validOutputs := bc.FindSpendableOutputs(fromPubKeyHash, amount)
+	// acc, validOutputs := bc.FindSpendableOutputs(fromPubKeyHash, amount)
+	acc, validOutputs := u.FindSpendableOutputs(fromPubKeyHash, amount)
 	if acc < amount {
 		slog.Debug("", "acc", acc, "amount", amount)
 		slog.Warn("Not enough money to spend!!!")
