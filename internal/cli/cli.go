@@ -1,7 +1,8 @@
 package cli
 
 import (
-	bm "blockchain/internal/block_model"
+	// bm "blockchain/internal/block_model"
+	bcm "blockchain/internal/blockchain_model"
 	st "blockchain/pkg/setting"
 	"flag"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 )
 
 type CLI struct{
-	BC *bm.BlockChain
+	BC *bcm.BlockChain
 }
 
 func(cli *CLI) Run(){
@@ -68,7 +69,7 @@ func(cli *CLI) Run(){
 			newCmd.Usage()
             os.Exit(1)
 		}
-		_, bc:= cli.newChain(addressData)
+		bc:= cli.newChain(addressData)
 		cli.BC = bc
 	}
 

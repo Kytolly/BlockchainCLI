@@ -27,6 +27,12 @@ var(
 	WalletFile          string
 
 	Subsidy             int
+
+	TargetBits          int
+
+	GenesisCoinbaseData string
+	ChainDbFile 		string	
+	BlockBucket         string
 )
 
 func init(){
@@ -40,6 +46,8 @@ func init(){
 	loadWallet(file)
 	loadTransaction(file)
 	loadLog(file)
+	loadPow(file)
+	loadBlockchain(file)
 }
 
 func loadServer(file *ini.File) {
@@ -70,4 +78,14 @@ func loadTransaction(file *ini.File) {
 func loadLog(file *ini.File){
 	LoggerLevel     = file.Section("log").Key("LoggerLevel").MustString("debug")
     Destination     = file.Section("log").Key("Destination").MustString("console")
+}
+
+func loadPow(file *ini.File){
+	TargetBits = file.Section("pow").Key("TargetBits").MustInt(5)
+}
+
+func loadBlockchain(file *ini.File){
+	GenesisCoinbaseData = file.Section("blockchain").Key("GenesisCoinbaseData").MustString("Genesis Block!")
+	ChainDbFile         = file.Section("blockchain").Key("ChainDbFilename").MustString("chain.db")
+	BlockBucket         = file.Section("blockchain").Key("BlockBucket").MustString("block")
 }

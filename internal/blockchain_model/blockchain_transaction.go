@@ -1,4 +1,4 @@
-package block_model
+package blockchain_model
 
 import (
 	ts "blockchain/internal/transaction_model"
@@ -59,8 +59,6 @@ func(bc *BlockChain) NewUTXOTransaction(from, to string, amount int)*ts.Transact
 	return &tx
 }
 
-
-
 func(bc *BlockChain) SignTransaction(tx *ts.Transaction, privKey ecdsa.PrivateKey) {
 	//TODO: 为交易签名
 	// 先找到先前引用输出所在的交易
@@ -73,15 +71,3 @@ func(bc *BlockChain) VerifyTransaction(tx *ts.Transaction)bool{
 	return tx.Verify(prevTXs)
 }
 
-func(bc *BlockChain) FindMapOfPrevTransactions(tx *ts.Transaction)map[string]ts.Transaction {
-	prevTXs := make(map[string]ts.Transaction)
-	for _,vin := range tx.VIn {
-		prevTX, err := bc.FindTransaction(vin.Txid)
-		if err != nil {
-			slog.Info(err.Error())
-			continue
-		}
-		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
-	}
-	return prevTXs
-}

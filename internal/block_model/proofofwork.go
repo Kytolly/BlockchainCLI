@@ -1,6 +1,7 @@
 package block_model
 
 import (
+	st "blockchain/pkg/setting"
 	"blockchain/pkg/utils"
 	"bytes"
 	"crypto/sha256"
@@ -11,7 +12,7 @@ import (
 )
 
 // 定义挖矿的难度
-const targetBits = 5
+var targetBits = st.TargetBits
 // 定义 nonce 的上限
 const maxNonce = math.MaxInt64
 
@@ -73,7 +74,6 @@ func(pow *ProofOfWork) Run() (int, []byte) {
 
 	return nonce, hash[:]
 }
-
 
 func(pow *ProofOfWork) Validate() bool{
 	// TODO: 对结果进行验证，看是否满足工作量证明难度。

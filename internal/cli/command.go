@@ -2,9 +2,9 @@ package cli
 
 import (
 	"fmt"
-	"os"
-	"context"
+	"os" 
 	bm "blockchain/internal/block_model"
+	bcm "blockchain/internal/blockchain_model"
 	wm "blockchain/internal/wallet_model"
 	ts "blockchain/internal/transaction_model"
 	st "blockchain/pkg/setting"
@@ -32,21 +32,13 @@ func(cli *CLI) validateArgs(){
 	}
 }
 
-func(cli *CLI) newChain(addressData *string)(*context.CancelFunc, *bm.BlockChain){
-	cancle, bc := bm.NewBlockChain(*addressData)
-	defer func(){
-		slog.Info("Shutting down the server...")
-		(*cancle)()
-	}()
-	return cancle, bc
+func(cli *CLI) newChain(addressData *string)(*bcm.BlockChain){
+	bc := bcm.NewBlockChain(*addressData) 
+	return bc
 }
 
 func(cli *CLI) getBalance(address string)int{
-	cancle, bc := bm.NewBlockChain(address)
-	defer func(){
-		slog.Info("Shutting down the server...")
-		(*cancle)()
-	}()
+	bc := bcm.NewBlockChain(address)
 
 	balance := 0
 	pubKeyHash := utils.GetPubKeyHashInAddress([]byte(address))
@@ -98,12 +90,9 @@ func(cli *CLI) printChain(){
 }
 
 func(cli *CLI) send(from, to string, amount int) {
-	cancle, bc := bm.NewBlockChain(from)
-	defer func(){
-		slog.Info("Shutting down the server...")
-		(*cancle)()
-	}()
-
+	// TODO：命令行接管发送交易，利用区块链的挖矿功能
+	bc := bcm.NewBlockChain(from) 
+	
 	//创建一个通用交易，将挖掘的区块添加到区块链中
 	//此处不符合比特币的设计规范，还需建立内存池等待矿工挖矿
 	tx := bc.NewUTXOTransaction(from, to, amount)

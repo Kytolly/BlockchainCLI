@@ -1,4 +1,4 @@
-package block_model
+package blockchain_model
 
 import (
 	ts "blockchain/internal/transaction_model"
@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 )
-
 
 func(bc *BlockChain) FindUnspentTransactions(pubKeyHash []byte) []ts.Transaction{
 	//TODO：在整个区块链中找到包含能被公钥锁定的UTXO的交易
@@ -130,4 +129,17 @@ func(bc *BlockChain) FindTransaction(ID []byte)(ts.Transaction, error){
 		}
 	}
 	return ts.Transaction{}, errors.New("transaction not found")
+}
+
+func(bc *BlockChain) FindMapOfPrevTransactions(tx *ts.Transaction)map[string]ts.Transaction {
+	prevTXs := make(map[string]ts.Transaction)
+	for _,vin := range tx.VIn {
+		prevTX, err := bc.FindTransaction(vin.Txid)
+		if err != nil {
+			slog.Info(err.Error())
+			continue
+		}
+		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
+	}
+	return prevTXs
 }
