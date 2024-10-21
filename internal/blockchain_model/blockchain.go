@@ -3,11 +3,12 @@ package blockchain_model
 import (
 	bm "blockchain/internal/block_model"
 	ts "blockchain/internal/transaction_model"
-	st "blockchain/pkg/setting"  
+	st "blockchain/pkg/setting"
+	"fmt"
 	"log/slog"
 	"os"
 
-	"github.com/boltdb/bolt" 
+	"github.com/boltdb/bolt"
 )
 
 var genesisCoinbaseData = st.GenesisCoinbaseData
@@ -29,7 +30,6 @@ func (bc *BlockChain) MineBlock(transactions []*ts.Transaction)*bm.Block {
 			slog.Warn("Waning: Invalid transaction!!!")
 		}
 	}
-
 	err := bc.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 		lasthash = b.Get([]byte("l"))
@@ -61,6 +61,8 @@ func (bc *BlockChain) MineBlock(transactions []*ts.Transaction)*bm.Block {
 		slog.Error(err.Error())
 	}
 	bc.tip = newBlock.Hash
+	slog.Info("A Block is mined successfully!")
+	fmt.Printf("A Block is mined successfully!\n")
 	return newBlock
 }
 
@@ -68,7 +70,7 @@ func NewBlockChain(address string) *BlockChain {
 	//TODO: 创建一个新的区块链
 	if dbExists(){
 		slog.Info("BlockChain already exists")
-		os.Exit(1)
+		os.Exit(1) 
 	}
 
 	var tip []byte
@@ -105,6 +107,31 @@ func NewBlockChain(address string) *BlockChain {
 	if err != nil {
 		slog.Error(err.Error())
         return nil
+	}
+	bc := BlockChain{tip, db}
+	return &bc
+}
+
+func GetBlockChain() *BlockChain {
+	//TODO: 利用已创建的区块链
+	if !dbExists() {
+		slog.Info("BlockChain not exists")
+		return nil 
+	}
+	var tip []byte
+	db, err := bolt.Open(dbFile, 0000, nil) 
+	if err != nil {
+		slog.Info(err.Error())
+		return nil
+	}
+	err = db.Update(func(tx *bolt.Tx)error{
+		b := tx.Bucket([]byte(blocksBucket))
+        tip = b.Get([]byte("l"))
+        return nil
+	})
+	if err != nil {
+		slog.Error(err.Error())
+		return nil
 	}
 	bc := BlockChain{tip, db}
 	return &bc

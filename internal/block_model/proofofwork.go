@@ -69,8 +69,6 @@ func(pow *ProofOfWork) Run() (int, []byte) {
 
 		slog.Info("(Proof of work)", "Hash", fmt.Sprintf("%x", hash), "NONCE", nonce)
 	}
-	slog.Info("A Block is mined successfully!")
-	fmt.Printf("A Block is mined successfully!\n")
 
 	return nonce, hash[:]
 }

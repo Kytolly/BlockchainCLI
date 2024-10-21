@@ -1,7 +1,10 @@
 package block_model
 
-import(
+import (
 	"bytes"
+	"log/slog"
+	// "crypto/sha256"
+	tr "blockchain/internal/merkletree_model"
 	"encoding/gob"
 	"fmt"
 )
@@ -29,4 +32,19 @@ func DeserializeBlock(data []byte) *Block{
 		fmt.Println(err)
 	}
 	return &block
+}
+
+func(b *Block) HashTransactions()[]byte{
+	// TODO: 计算交易序列打包的哈希值
+	// var txHashes 	[][]byte
+	// var txHash 		[32]byte
+	var transactions [][]byte
+
+	for _,tx := range b.Transactions{
+		transactions = append(transactions, tx.Serialize())
+	}
+	//txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+	slog.Debug("transactions", "len", len(transactions))
+	mTree := tr.NewMerkleTree(transactions)
+	return mTree.RootNode.Data
 }

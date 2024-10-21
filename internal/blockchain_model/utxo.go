@@ -24,11 +24,11 @@ func(u UTXOSet) ReIndex() {
 	err := db.Update(func(tx *bolt.Tx) error {
 		err := tx.DeleteBucket(bucketName)
 		if err != nil {
-			slog.Error(err.Error())
+			slog.Info(err.Error())
 		}
 		_, err = tx.CreateBucket(bucketName)
 		if err != nil {
-			slog.Error(err.Error())
+			slog.Info(err.Error())
 		}
 		return err
 	})
@@ -36,8 +36,7 @@ func(u UTXOSet) ReIndex() {
 		slog.Error(err.Error())
         return
 	}
-
-	UTXO := u.BC.FindUTXO()
+	UTXO := u.BC.FindUTXO() 
 
 	err = db.Update(func(tx *bolt.Tx)error {
 		b := tx.Bucket(bucketName)
@@ -100,7 +99,8 @@ func(u UTXOSet) FindUTXO(pubKeyHash []byte) []ts.TXOutput {
 
 		for k, v:= c.First(); k!=nil; k,v = c.Next() {
 			outs := ts.DeserializeOutputs(v)
-
+			slog.Debug("now outs", "len", len(outs.Outputs))
+			
 			for _,out := range outs.Outputs {
 				if out.IsLockedWithKey(pubKeyHash){
 					UTXOs = append(UTXOs, out)

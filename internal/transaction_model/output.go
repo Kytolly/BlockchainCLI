@@ -1,8 +1,9 @@
 package transaction_model
 
-import(
-	utils "blockchain/pkg/utils" 
+import (
+	utils "blockchain/pkg/utils"
 	"bytes"
+	"encoding/gob"
 )
 
 // 引用输出的时候，输出将会作为一个整体被消费
@@ -30,6 +31,18 @@ func(out *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 	return bytes.Equal(out.PubKeyHash, pubKeyHash)
 }
 
+func (out *TXOutput) Serialize() []byte {
+	// TODO： 序列化交易输出。
+	var buffer bytes.Buffer
+
+	encoder := gob.NewEncoder(&buffer)
+	err := encoder.Encode(out)
+	if err != nil {
+		panic(err)
+	}
+
+	return buffer.Bytes()
+}
 // func(out *TXOutput) CanBeUnlockedWith(unlockingData string)bool{
 // 	//TODO: 能否用address被解锁
 // 	return out.ScriptPubKtey == unlockingData

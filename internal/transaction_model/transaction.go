@@ -17,15 +17,15 @@ type Transaction struct{
 	VOut 	[]TXOutput // 交易的输出
 }
 
-func  NewCoinbaseTx(to, data string) *Transaction{
+func  NewCoinbaseTx(from, data string) *Transaction{
 	// TODO:创建coinbase交易
 	// 不需要以前存在的输出。它凭空创造了输出（即“硬币”）。
 	if data == ""{
-		data = fmt.Sprintf("Reward to '%s'", to) // 奖励给矿工
+		data = fmt.Sprintf("Reward to '%s'", from) // 奖励给矿工
 	}
 
 	txin := TXInput{Txid:[]byte{}, Vout:-1, Signature: nil, PubKey: []byte(data)}
-	txout := NewTXOutput(subsidy, to)
+	txout := NewTXOutput(subsidy, from)
 	
 	tx := Transaction{ID:nil, VIn:[]TXInput{txin}, VOut:[]TXOutput{*txout}}
 	tx.SetID()

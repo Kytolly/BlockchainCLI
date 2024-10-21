@@ -53,6 +53,16 @@ func(tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transact
 func(tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	// TODO: 公钥验证
 	// 根据输入引用之前的（输出所在）交易，验证签名是否正确
+	if tx.IsCoinbase() {
+		// coinbase没有签名，也无需验证
+		return true
+	}
+	for _, vin := range tx.VIn {
+		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
+			slog.Error("Previous transaction is not correct")
+		}
+	}
+	
 	txCopy := tx.TrimmedCopy()
 	curve := elliptic.P256()
 

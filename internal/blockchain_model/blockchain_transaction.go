@@ -29,8 +29,8 @@ func(bc *BlockChain) NewUTXOTransaction(from, to string, amount int, u *UTXOSet)
 	// 找到所有未使用的outputs确保能够支付给定amount
 	// acc, validOutputs := bc.FindSpendableOutputs(fromPubKeyHash, amount)
 	acc, validOutputs := u.FindSpendableOutputs(fromPubKeyHash, amount)
+	slog.Debug("", "acc", acc, "amount", amount)
 	if acc < amount {
-		slog.Debug("", "acc", acc, "amount", amount)
 		slog.Warn("Not enough money to spend!!!")
 		fmt.Printf("Not enough money to spend!!!\n")
 		return nil
@@ -56,6 +56,7 @@ func(bc *BlockChain) NewUTXOTransaction(from, to string, amount int, u *UTXOSet)
 
 	tx := ts.Transaction{ID:nil, VIn:inputs, VOut:outputs}
 	tx.SetID()
+	slog.Debug("New UTXO Transaction", "ID", fmt.Sprintf("%x", tx.ID))
 	// 签名发生在新建UTXO交易中
 	bc.SignTransaction(&tx, wallet_from.PrivateKey)
 	return &tx
@@ -66,6 +67,7 @@ func(bc *BlockChain) SignTransaction(tx *ts.Transaction, privKey ecdsa.PrivateKe
 	// 先找到先前引用输出所在的交易
 	prevTXs := bc.FindMapOfPrevTransactions(tx)
 	tx.Sign(privKey, prevTXs)
+	slog.Info("sign success for transaction", "ID", fmt.Sprintf("%x", tx.ID))
 }
 
 func(bc *BlockChain) VerifyTransaction(tx *ts.Transaction)bool{

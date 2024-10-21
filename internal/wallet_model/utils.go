@@ -1,7 +1,8 @@
 package wallet_model
 
 import (
-	st "blockchain/pkg/setting"
+	st "blockchain/pkg/setting" 
+	utils "blockchain/pkg/utils"
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -32,6 +33,19 @@ func checksum(payload []byte) []byte {
 	firstSHA := sha256.Sum256(payload)
 	secondSHA := sha256.Sum256(firstSHA[:])
 	return secondSHA[:addressChecksumLen]
+}
+func CheckAddress(address string)bool {
+	pubKeyHash := utils.Base58Decode([]byte(address))
+
+	ChecksumLen := st.ChecksumLen
+	VersionLen := len([]byte(st.AlgorithmVersion) )
+
+	actualChecksum := pubKeyHash[len(pubKeyHash)-ChecksumLen:]
+	version := pubKeyHash[:VersionLen]
+	pubKeyHash = pubKeyHash[VersionLen : len(pubKeyHash)-ChecksumLen]
+	targetChecksum := checksum(append(version, pubKeyHash...))
+
+	return bytes.Equal(actualChecksum, targetChecksum) 
 }
 
 func(w *Wallet) GobEncode() ([]byte, error) {
