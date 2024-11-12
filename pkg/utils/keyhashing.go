@@ -24,6 +24,7 @@ func GetPubKeyHashInAddress(address []byte) []byte {
 	// 完整的未编码压缩的地址包括版本号，公钥哈希值，校验和,需要去掉版本号和若干位校验和
 	pubKeyHash := Base58Decode(address)
 	ChecksumLen := st.ChecksumLen
-	VersionLen := len([]byte(st.AlgorithmVersion) )
+	// VersionLen := len([]byte(st.Version) )
+	VersionLen := 1
 	return pubKeyHash[VersionLen:len(pubKeyHash)-ChecksumLen]
 }

@@ -2,11 +2,12 @@ package wallet_model
 
 import (
 	"crypto/ecdsa" 
-	st "blockchain/pkg/setting"
+	// st "blockchain/pkg/setting"
 	utils "blockchain/pkg/utils"
 )
 
-var version = []byte(st.AlgorithmVersion)
+// var version = []byte(st.AlgorithmVersion)
+var version = []byte{0x00}
 
 type Wallet struct {
 	// 用私钥和公钥代表钱包所有者的身份

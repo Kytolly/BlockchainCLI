@@ -38,7 +38,8 @@ func CheckAddress(address string)bool {
 	pubKeyHash := utils.Base58Decode([]byte(address))
 
 	ChecksumLen := st.ChecksumLen
-	VersionLen := len([]byte(st.AlgorithmVersion) )
+	// VersionLen := len([]byte(st.AlgorithmVersion) )
+	VersionLen := 1
 
 	actualChecksum := pubKeyHash[len(pubKeyHash)-ChecksumLen:]
 	version := pubKeyHash[:VersionLen]

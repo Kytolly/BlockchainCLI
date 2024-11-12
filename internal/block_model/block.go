@@ -19,6 +19,7 @@ type Block struct{
 	//Data 			[]byte 	// 区块的交易数据(原始)
 	Transactions	[]*ts.Transaction //区块的交易数据
 	Hash  			[]byte 	// 区块的哈希值
+	Height          int     // 区块的高度
 }
 
 func (b *Block) SetHash() {
@@ -37,7 +38,7 @@ func (b *Block) SetHash() {
 	b.Hash = hash[:]
 }
 
-func NewBlock(transactions []*ts.Transaction, prevBlockHash []byte) *Block {
+func NewBlock(transactions []*ts.Transaction, prevBlockHash []byte, height int) *Block {
 	//TODO: 创建一个新的区块
 	block := &Block{
 		//Timestamp: time.Now().Unix(),
@@ -53,6 +54,7 @@ func NewBlock(transactions []*ts.Transaction, prevBlockHash []byte) *Block {
         //Data: []byte(data),
 		Transactions: transactions,
 		Hash: []byte{},
+		Height: height,
 	}
 	block.SetHash()
 	return block
@@ -61,5 +63,5 @@ func NewBlock(transactions []*ts.Transaction, prevBlockHash []byte) *Block {
 func NewGenesisBlock(coinbase *ts.Transaction) *Block{
 	//TODO: 建立创世块
 	//return NewBlock("Genesis Block!", []byte{})
-	return NewBlock([]*ts.Transaction{coinbase}, []byte{})
+	return NewBlock([]*ts.Transaction{coinbase}, []byte{}, 0)
 }

@@ -24,6 +24,8 @@ type BlockChain struct{
 func (bc *BlockChain) MineBlock(transactions []*ts.Transaction)*bm.Block {
 	//TODO: 向区块链添加新区块
 	var lasthash []byte
+	var lastHeight int
+	
 	// 验证发生在交易进入区块之前
 	for _, tx := range transactions {
 		if !bc.VerifyTransaction(tx) {
@@ -33,14 +35,18 @@ func (bc *BlockChain) MineBlock(transactions []*ts.Transaction)*bm.Block {
 	err := bc.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 		lasthash = b.Get([]byte("l"))
-
+		
+		// 挖矿应该遵循最长链原则，新挖出来的区块高度等于库中最后一个区块高度+1
+		blockData := b.Get(lasthash)
+		block := bm.DeserializeBlock(blockData)
+		lastHeight = block.Height
 		return nil
 	})
 	if err != nil {
 		slog.Error(err.Error())
 	}
 
-	newBlock := bm.NewBlock(transactions, lasthash)
+	newBlock := bm.NewBlock(transactions, lasthash, lastHeight+1)
 	err = bc.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 		err := b.Put(newBlock.Hash, newBlock.Serialize())
@@ -66,7 +72,13 @@ func (bc *BlockChain) MineBlock(transactions []*ts.Transaction)*bm.Block {
 	return newBlock
 }
 
-func NewBlockChain(address string) *BlockChain {
+func (bc *BlockChain) AddBlock(block *bm.Block) {
+	
+}
+
+
+func NewBlockChain(nodeID string) *BlockChain {
+	address := nodeID
 	//TODO: 创建一个新的区块链
 	if dbExists(){
 		slog.Info("BlockChain already exists")

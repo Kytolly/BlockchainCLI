@@ -8,8 +8,12 @@ import (
 
 var initFile = "/home/kytolly/Project/gowork/blockchain/configs/config.ini"
 
+const CommandLength int = 12
+
 var(
 	AppMode 		    string
+	Protocol  			string
+	CenterPort 			string
 
 	LoggerLevel 		string
 	Destination 		string
@@ -22,7 +26,7 @@ var(
 	DbName      		string
 	DbCollectionName   	string
 
-	AlgorithmVersion  	string
+	Version  			int
 	ChecksumLen  		int
 	WalletFile          string
 
@@ -52,7 +56,10 @@ func init(){
 }
 
 func loadServer(file *ini.File) {
-	AppMode = file.Section("server").Key("AppMode").MustString("debug")
+	AppMode 	= file.Section("server").Key("AppMode").MustString("debug")
+	Protocol 	= file.Section("server").Key("Protocol").MustString("tcp")	
+	CenterPort 	= file.Section("server").Key("CenterPort").MustString("localhost:3000")
+	// CommandLength = file.Section("server").Key("CommandLength").MustInt(12)
 }
 
 func loadDatabase(file *ini.File) {
@@ -67,7 +74,7 @@ func loadDatabase(file *ini.File) {
 }
 
 func loadWallet(file *ini.File) {
-	AlgorithmVersion = file.Section("wallet").Key("AlgorithmVersion").MustString("0.0.1")
+	Version 		 = file.Section("wallet").Key("Version").MustInt(1)
 	ChecksumLen 	 = file.Section("wallet").Key("ChecksumLen").MustInt(10)
 	WalletFile       = file.Section("wallet").Key("WalletFile").MustString("wallet.dat")
 }

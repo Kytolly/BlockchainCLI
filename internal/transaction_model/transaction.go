@@ -1,9 +1,7 @@
 package transaction_model
 
 import (
-	"bytes"
 	"crypto/sha256"
-	"encoding/gob"
 	"fmt"
 	"log/slog"
 	st"blockchain/pkg/setting"
@@ -57,15 +55,3 @@ func (tx *Transaction) Hash() []byte {
 }
 
 
-func (tx *Transaction) Serialize() []byte {
-	// TODO： 序列化交易。
-	var buffer bytes.Buffer
-
-	encoder := gob.NewEncoder(&buffer)
-	err := encoder.Encode(tx)
-	if err != nil {
-		panic(err)
-	}
-
-	return buffer.Bytes()
-}
