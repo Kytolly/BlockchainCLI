@@ -158,3 +158,24 @@ func(u UTXOSet) Update(block *bm.Block) {
 		slog.Error(err.Error())
 	}
 }
+
+func (u UTXOSet) CountTransactions() int {
+	db := u.BC.db
+	counter := 0
+
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(utxoBucket))
+		c := b.Cursor()
+
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			counter++
+		}
+
+		return nil
+	})
+	if err != nil {
+		slog.Error(err.Error())
+	}
+
+	return counter
+}

@@ -1,15 +1,17 @@
 package cli
 
 import (
-	"fmt"
-	"os" 
 	bm "blockchain/internal/block_model"
 	bcm "blockchain/internal/blockchain_model"
-	wm "blockchain/internal/wallet_model"
 	ts "blockchain/internal/transaction_model"
+	wm "blockchain/internal/wallet_model"
+	sm "blockchain/internal/server_model"
 	st "blockchain/pkg/setting"
 	utils "blockchain/pkg/utils"
+	"fmt"
+	"log"
 	"log/slog"
+	"os"
 	"strconv"
 )
 
@@ -20,7 +22,9 @@ func (cli *CLI) printUsage(){
 	fmt.Println("blockchain getbalance --address <ADDRESS> 				     # To get balance of wallet that located at ADDRESS")
 	fmt.Println("blockchain list 											 # To list all addresses in wallet file")
 	fmt.Println("blockchain print 										     # To print al blocks in blockchain")
+	fmt.Println("blockchain reindex 										 # To reindex the unspent transaction outputs cache set")
 	fmt.Println("blockchain send --from <FROM> --to <TO> --amount <AMOUNT>   # To send <AMOUNT> of bitcoins <FROM> --> <TO>")
+	fmt.Println("blockchain start --miner                                    # To work as a node(miner or center)")
 	fmt.Println("blockchain log 											 # To display log file content in console")
 	fmt.Println("blockchain help 											 # To print usage of CLI commands")
 }
@@ -62,25 +66,29 @@ func(cli *CLI) getBalance(address string)int{
 	return balance
 }
 
-func(cli *CLI) createWallet() {
-	wallets,_:= wm.NewWallets()
+func(cli *CLI) createWallet(nodeID string) {
+	wallets,_:= wm.NewWallets(nodeID)
 	address := wallets.CreateWallet()
 	wallets.SaveToFile()
 
 	fmt.Printf("New address: %s\n", address)
 }
 
-func(cli *CLI) listAddresses() {
-	wallets,_ := wm.NewWallets()
+func(cli *CLI) listAddresses(nodeID string) {
+	wallets,_ := wm.NewWallets(nodeID)
 	addresses := wallets.GetAddress()
 	for idx, address := range addresses {
 		fmt.Printf("Address %d: %s\n", idx, address)
 	}
 }
 
-func(cli *CLI) printChain(){
+func(cli *CLI) printChain(nodeID string){
 	// TODO：命令行接管打印区块链，利用迭代器遍历整个区块链
-	bci := cli.BC.Iterator()
+	// bci := cli.BC.Iterator()
+	bc := bcm.NewBlockChain(nodeID)
+	defer bc.Close()
+	bci := bc.Iterator()
+
 	for {
 		block := bci.Next()
 
@@ -99,8 +107,23 @@ func(cli *CLI) printChain(){
 	}
 }
 
-func(cli *CLI) send(from, to string, amount int) {
+func(cli *CLI) reIndexUTXO(nodeID string){
+	bc := bcm.NewBlockChain(nodeID)
+	UTXOSet := bcm.UTXOSet{BC: bc}
+	UTXOSet.ReIndex()
+
+	cnt := UTXOSet.CountTransactions()
+	fmt.Printf("Done! There are %d transactions in the UTXO set.\n", cnt)
+}
+
+func(cli *CLI) send(from, to string, amount int, nodeID string, mineData bool) {
 	// TODO：命令行接管发送交易，利用区块链的挖矿功能
+	wallets, err := wm.NewWallets(nodeID)
+	if err != nil {
+		log.Panic(err)
+	}
+	wallet := wallets.GetWallet(from)
+
 	if !wm.CheckAddress(from) {
 		slog.Warn("Invalid address:", "from", from)
 		fmt.Println("the address FROM is invalid, please check it")
@@ -114,19 +137,32 @@ func(cli *CLI) send(from, to string, amount int) {
 	defer bc.Close()
 
 	//创建一个通用交易，将挖掘的区块添加到区块链中
-	tx := bc.NewUTXOTransaction(from, to, amount, &UTXOSet)
-	cbTx := ts.NewCoinbaseTx(from, "")
-	txs := []*ts.Transaction{cbTx, tx}
-	if tx == nil {
-		slog.Info("No transactions to mine")
-		slog.Info("Failed Sending!")
-		return 
+	tx := bc.NewUTXOTransaction(&wallet, to, amount, &UTXOSet)
+	if mineData {
+		cbTx := ts.NewCoinbaseTx(from, "")
+		txs := []*ts.Transaction{cbTx, tx}
+		if tx == nil {
+			slog.Info("No transactions to mine")
+			slog.Info("Failed Sending!")
+			return 
+		}
+		newBlock := bc.MineBlock(txs)
+		UTXOSet.Update(newBlock)
+	}else {
+		sm.SendTx_center(tx)
 	}
-
-	newBlock := bc.MineBlock(txs)
-	UTXOSet.Update(newBlock)
-
 	slog.Info("Success sending!")
+}
+
+func(cli *CLI) start(nodeID, startData string) {
+	fmt.Printf("starting node %s\n", nodeID) 
+	if len(startData) >0 {
+		if wm.CheckAddress(startData) {
+			fmt.Printf("Mining is on %s to receive rewards\n", startData) 
+		}else {
+			log.Panic("Wrong miner address")
+		}
+	}
 }
 
 func(cli *CLI) printLog() {

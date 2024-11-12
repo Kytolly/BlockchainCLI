@@ -15,3 +15,6 @@ func sendTx(addrfrom string, tx *ts.Transaction) {
     request := append(commandToBytes("block"), payload...)
 	sendData(addrfrom, request)
 }
+func SendTx_center(tx *ts.Transaction){
+	sendTx(knownNodes[0], tx)
+}

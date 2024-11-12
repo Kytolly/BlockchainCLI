@@ -5,7 +5,9 @@ import (
 	"bytes"
 	"crypto/elliptic"
 	"encoding/gob"
-	// "fmt"  
+	"fmt"
+
+	// "fmt"
 	"log/slog"
 	"os"
 )
@@ -16,10 +18,10 @@ type Wallets struct {
 
 var walletFile = st.WalletFile
 
-func NewWallets() (*Wallets, error) {
+func NewWallets(nodeID string) (*Wallets, error) {
 	wallets := Wallets{}
 	wallets.Wallets = make(map[string]*Wallet)
-	err := wallets.LoadFromFile()
+	err := wallets.LoadFromFile(nodeID)
 	return &wallets, err
 }
  
@@ -46,9 +48,10 @@ func(ws *Wallets) GetWallet(address string)Wallet{
 	// TODO: 根据钱包地址获得钱包
 	return *ws.Wallets[address]
 }
-func(ws *Wallets) LoadFromFile() error {
+func(ws *Wallets) LoadFromFile(nodeID string) error {
 	// TODO: 从文件中导入钱包
-	if _, err := os.Stat(walletFile); os.IsNotExist(err) {
+	walletfile := fmt.Sprintf(walletFile, nodeID)
+	if _, err := os.Stat(walletfile); os.IsNotExist(err) {
 		return err
 	}
 	fileContent, err := os.ReadFile(walletFile)

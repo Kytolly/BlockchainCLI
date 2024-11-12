@@ -13,9 +13,16 @@ import (
 type CLI struct{
 	BC *bcm.BlockChain
 }
+var nodeID string
 
 func(cli *CLI) Run(){
 	fmt.Println("Welcome to the blockchain CLI!")
+
+	nodeID = os.Getenv("NODE_ID")
+	if nodeID == "" {
+		fmt.Printf("NODE_ID env. var is not set!")
+		os.Exit(1)
+	}
 
 	var err error
 	cli.validateArgs()
@@ -25,8 +32,10 @@ func(cli *CLI) Run(){
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
 	createwalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
-	printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
+	printCmd := flag.NewFlagSet("print", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
+	reindexCmd := flag.NewFlagSet("reindex", flag.ExitOnError)
+	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
 	logCmd := flag.NewFlagSet("log", flag.ExitOnError)
 	helpCmd := flag.NewFlagSet("help", flag.ExitOnError)
 
@@ -35,6 +44,8 @@ func(cli *CLI) Run(){
 	fromData := sendCmd.String("from", "Defalut From Address", "The Address from")
 	amountData := sendCmd.Int("amount", 0, "the Amount of sendCmd")
 	toData := sendCmd.String("to", "Defalut To Address", "The Address to") 
+	mineData := sendCmd.Bool("mine", false, "Mine immediately on the same node")
+	startData := startCmd.String("miner", "", "Enable mining mode and send reward to ADDRESS")
 	logRemoveData := logCmd.Bool("remove", false, "Determined to remove log?")
 
 	// 创建子命令
@@ -48,7 +59,11 @@ func(cli *CLI) Run(){
     case "list":
         err = listCmd.Parse(os.Args[2:])
 	case "print":
-			err = printChainCmd.Parse(os.Args[2:])
+		err = printCmd.Parse(os.Args[2:])
+	case "reinex":
+		err = reindexCmd.Parse(os.Args[2:])
+    case "start":
+		err = startCmd.Parse(os.Args[2:])
 	case "send":
 		err = sendCmd.Parse(os.Args[2:])
 	case "log":
@@ -82,25 +97,37 @@ func(cli *CLI) Run(){
 	}
 
 	if createwalletCmd.Parsed() {
-		cli.createWallet()
+		cli.createWallet(nodeID)
 	}
 
 	if listCmd.Parsed(){
-		cli.listAddresses()
+		cli.listAddresses(nodeID)
 	}
 
-	if printChainCmd.Parsed(){
-		cli.printChain()
+	if printCmd.Parsed(){
+		cli.printChain(nodeID)
+	}
+
+	if reindexCmd.Parsed() {
+		cli.reIndexUTXO(nodeID)
 	}
 
 	if sendCmd.Parsed() {
-		if *fromData == "" || *toData == ""{
+		if *fromData == "" || *toData == "" || *amountData<=0 {
             sendCmd.Usage()
             os.Exit(1)
         }
-        cli.send(*fromData, *toData, *amountData) 
+        cli.send(*fromData, *toData, *amountData, nodeID, *mineData) 
 	}
 
+	if startCmd.Parsed() {
+		nodeID := os.Getenv("NODE_ID")
+		if nodeID == "" {
+			startCmd.Usage()
+			os.Exit(1)
+		}
+		cli.start(nodeID, *startData)
+	}
     if logCmd.Parsed(){
 		if *logRemoveData {
 			dest := st.Destination

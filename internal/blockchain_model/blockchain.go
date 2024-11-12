@@ -1,7 +1,7 @@
 package blockchain_model
 
 import (
-	bm "blockchain/internal/block_model"
+	bm "blockchain/internal/block_model" 
 	ts "blockchain/internal/transaction_model"
 	st "blockchain/pkg/setting"
 	"fmt"
@@ -73,7 +73,37 @@ func (bc *BlockChain) MineBlock(transactions []*ts.Transaction)*bm.Block {
 }
 
 func (bc *BlockChain) AddBlock(block *bm.Block) {
-	
+	err := bc.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+		blockInDb := b.Get(block.Hash)
+
+		if blockInDb != nil {
+			return nil
+		}
+
+		blockData := block.Serialize()
+		err := b.Put(block.Hash, blockData)
+		if err != nil {
+			slog.Error(err.Error())
+		}
+
+		lastHash := b.Get([]byte("l"))
+		lastBlockData := b.Get(lastHash)
+		lastBlock := bm.DeserializeBlock(lastBlockData)
+
+		if block.Height > lastBlock.Height {
+			err = b.Put([]byte("l"), block.Hash)
+			if err != nil {
+				slog.Error(err.Error())
+			}
+			bc.tip = block.Hash
+		}
+
+		return nil
+	})
+	if err != nil {
+		slog.Error(err.Error())
+	}
 }
 
 

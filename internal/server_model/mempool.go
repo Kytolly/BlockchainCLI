@@ -5,7 +5,3 @@ import (
 )
 
 var mempool = make(map[string]ts.Transaction) 
-
-func delete(mempool map[string]ts.Transaction, txid string) {
-	
-}
