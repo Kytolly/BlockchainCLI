@@ -4,10 +4,7 @@ import (
 	st "blockchain/pkg/setting"
 	"bytes"
 	"crypto/elliptic"
-	"encoding/gob"
-	"fmt"
-
-	// "fmt"
+	"encoding/gob" 
 	"log/slog"
 	"os"
 )
@@ -49,9 +46,8 @@ func(ws *Wallets) GetWallet(address string)Wallet{
 	return *ws.Wallets[address]
 }
 func(ws *Wallets) LoadFromFile(nodeID string) error {
-	// TODO: 从文件中导入钱包
-	walletfile := fmt.Sprintf(walletFile, nodeID)
-	if _, err := os.Stat(walletfile); os.IsNotExist(err) {
+	// TODO: 从文件中导入钱包 
+	if _, err := os.Stat(walletFile); os.IsNotExist(err) {
 		return err
 	}
 	fileContent, err := os.ReadFile(walletFile)

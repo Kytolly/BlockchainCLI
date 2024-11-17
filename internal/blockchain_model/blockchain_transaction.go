@@ -72,6 +72,9 @@ func(bc *BlockChain) SignTransaction(tx *ts.Transaction, privKey ecdsa.PrivateKe
 }
 
 func(bc *BlockChain) VerifyTransaction(tx *ts.Transaction)bool{
+	if tx.IsCoinbase() {
+		return true
+	}
 	prevTXs := bc.FindMapOfPrevTransactions(tx)
 	return tx.Verify(prevTXs)
 }

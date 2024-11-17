@@ -26,7 +26,7 @@ func bytesToCommand(bytes []byte) string {
 			command = append(command, b)
 		}
 	}
-	return fmt.Sprintf("%x", command)
+	return string(command)
 }
 
 
@@ -51,6 +51,7 @@ func gobEncode(data interface{}) []byte {
 }
 
 func sendData(addr string, data []byte) {
+	fmt.Printf("send data from %s to %s\n", nodeAddress, addr)
 	conn, err := net.Dial(protocol, addr)
 	if err != nil {
 		slog.Info(addr+"is not available now!")

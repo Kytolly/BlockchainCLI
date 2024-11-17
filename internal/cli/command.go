@@ -15,6 +15,7 @@ import (
 	"strconv"
 )
 
+
 func (cli *CLI) printUsage(){
 	fmt.Println("Usage:")
     fmt.Println("blockchain new --address <ADDRESS>  		 				 # To create a blockchain or connect built one, send genesis block to ADDRESS")
@@ -37,7 +38,10 @@ func(cli *CLI) validateArgs(){
 }
 
 func(cli *CLI) newChain(addressData *string)(*bcm.BlockChain){
-	bc := bcm.NewBlockChain(*addressData) 
+	if !wm.CheckAddress(*addressData) {
+		slog.Error("ERROR: Invalid address data")
+	}
+	bc := bcm.NewBlockChain(*addressData, nodeID) 
 	defer bc.Close()
 	UTXOSet := bcm.UTXOSet{BC: bc}
 	UTXOSet.ReIndex()
@@ -48,7 +52,7 @@ func(cli *CLI) getBalance(address string)int{
 	if !wm.CheckAddress(address) {
 		slog.Warn("Invalid address")
 	}
-	bc := bcm.GetBlockChain()
+	bc := bcm.GetBlockChain(nodeID)
 	u := bcm.UTXOSet{BC: bc} 
 	defer bc.Close()
 
@@ -85,7 +89,7 @@ func(cli *CLI) listAddresses(nodeID string) {
 func(cli *CLI) printChain(nodeID string){
 	// TODO：命令行接管打印区块链，利用迭代器遍历整个区块链
 	// bci := cli.BC.Iterator()
-	bc := bcm.NewBlockChain(nodeID)
+	bc := bcm.GetBlockChain(nodeID)
 	defer bc.Close()
 	bci := bc.Iterator()
 
@@ -108,7 +112,7 @@ func(cli *CLI) printChain(nodeID string){
 }
 
 func(cli *CLI) reIndexUTXO(nodeID string){
-	bc := bcm.NewBlockChain(nodeID)
+	bc := bcm.GetBlockChain(nodeID)
 	UTXOSet := bcm.UTXOSet{BC: bc}
 	UTXOSet.ReIndex()
 
@@ -118,23 +122,22 @@ func(cli *CLI) reIndexUTXO(nodeID string){
 
 func(cli *CLI) send(from, to string, amount int, nodeID string, mineData bool) {
 	// TODO：命令行接管发送交易，利用区块链的挖矿功能
-	wallets, err := wm.NewWallets(nodeID)
-	if err != nil {
-		log.Panic(err)
-	}
-	wallet := wallets.GetWallet(from)
-
 	if !wm.CheckAddress(from) {
-		slog.Warn("Invalid address:", "from", from)
-		fmt.Println("the address FROM is invalid, please check it")
+		slog.Error("ERROR: Invalid from address data!")
 	}
-	if!wm.CheckAddress(to) {
-        slog.Warn("Invalid address:", "to", to)
-        fmt.Println("the address TO is invalid, please check it")
-    }
-	bc := bcm.GetBlockChain() 
+	if !wm.CheckAddress(to) {
+		slog.Error("ERROR: Invalid to address data!")
+	}
+	
+	bc := bcm.GetBlockChain(nodeID)  
 	UTXOSet := bcm.UTXOSet{BC: bc}
 	defer bc.Close()
+
+	wallets, err := wm.NewWallets(nodeID)
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	wallet := wallets.GetWallet(from)
 
 	//创建一个通用交易，将挖掘的区块添加到区块链中
 	tx := bc.NewUTXOTransaction(&wallet, to, amount, &UTXOSet)
@@ -163,6 +166,7 @@ func(cli *CLI) start(nodeID, startData string) {
 			log.Panic("Wrong miner address")
 		}
 	}
+	sm.StartServer(nodeID, startData)
 }
 
 func(cli *CLI) printLog() {

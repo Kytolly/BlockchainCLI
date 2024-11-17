@@ -11,11 +11,11 @@ type getData struct {
  	ID []byte       // 区块ID/交易ID，方便在数据库查找
 }
 
-func sendGetData(addrfrom, t string, id []byte) {
+func sendGetData(toAddr, t string, id []byte) {
 	// TODO： 发送区块哈希/交易哈希
-	payload := gobEncode(getData{Addrfrom: addrfrom, Type: t, ID:id})
+	payload := gobEncode(getData{Addrfrom: nodeAddress, Type: t, ID:id})
     request := append(commandToBytes("getdata"), payload...)
-	sendData(addrfrom, request)
+	sendData(toAddr, request)
 }
 
 

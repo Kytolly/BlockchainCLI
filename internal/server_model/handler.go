@@ -42,6 +42,7 @@ func handleConnection(conn net.Conn, bc *bcm.BlockChain) {
 	default:
 		fmt.Println("Unknown command!")
 	}
+	fmt.Printf("%s command has been handled!\n", command)
 	conn.Close()
 }
 
@@ -62,9 +63,14 @@ func handleVersion(request []byte, bc *bcm.BlockChain) {
 	// 如果本地链长，说明需要别人需要获取区块，自己把版本发给他让他去别的地方更新区块链
 	myBestHeight := bc.GetBestHeight()
 	foreignerBestHeight := payload.BestHeight
+	fmt.Printf("myBestHeight=%d\n", myBestHeight)
+	fmt.Printf("foreignerBestHeight=%d\n", foreignerBestHeight)
+
 	if myBestHeight < foreignerBestHeight {
+		fmt.Println("Need to send getblock command from payload.Addrfrom")
 		sendGetBlocks(payload.Addrfrom)
 	}else if myBestHeight > foreignerBestHeight {
+		fmt.Println("Need to send version command")
 		sendVersion(payload.Addrfrom, bc)
 	}
 
@@ -88,6 +94,7 @@ func handleGetBlocks(request []byte, bc *bcm.BlockChain){
 
 	// 获取别人的区块实际上先获得哈希列表，减小网络负载
 	blocks := bc.GetBlockHashes()
+	fmt.Printf("Need to send inv command to %s", payload.Addrfrom)
 	sendInv(payload.Addrfrom, "block", blocks)
 }
 
@@ -111,6 +118,7 @@ func handleInv(request []byte, _ *bcm.BlockChain){
 		//发送第一个item就删掉它(以及相同的item，其实就是哈希)
 		blocksInTransit = payload.Items
 		blockHash := payload.Items[0]
+		fmt.Printf("Need to send getdata command to %s", payload.Addrfrom)
 		sendGetData(payload.Addrfrom, "block", blockHash)
 		// 删除发送过的hash
 		newInTransit := [][]byte{}
@@ -126,6 +134,7 @@ func handleInv(request []byte, _ *bcm.BlockChain){
 		txID := payload.Items[0]
 		txid := hex.EncodeToString(txID)
 		if mempool[txid].ID == nil {
+			fmt.Printf("Need to send getdata command to %s", payload.Addrfrom)
 			sendGetData(payload.Addrfrom, "tx", txID)
 		}
 	}
@@ -149,12 +158,14 @@ func handleGetData(request []byte, bc *bcm.BlockChain){
 		if err != nil {
 			slog.Error(err.Error()) 
 		}
+		fmt.Printf("Need to send getblock command to %s", payload.Addrfrom)
 		sendBlock(payload.Addrfrom, block) 
 	}
 	// 获得某笔交易
 	if payload.Type == "tx" {
-		txID := hex.EncodeToString(payload.ID) 
-		tx := mempool[txID]
+		txid := hex.EncodeToString(payload.ID) 
+		tx := mempool[txid]
+		fmt.Printf("Need to send tx command to %s", payload.Addrfrom)
 		sendTx(payload.Addrfrom, &tx)
 	}
 }
@@ -181,6 +192,7 @@ func handleBlock(request []byte, bc *bcm.BlockChain){
 		// 如果还有区块没有获取
 		// 网络上继续请求发送
 		blockHash := blocksInTransit[0]
+		fmt.Printf("Need to send getdata command to %s", payload.Addrfrom)
 		sendGetData(payload.Addrfrom, "block", blockHash)
 		blocksInTransit = blocksInTransit[1:]
 	}else {
@@ -212,6 +224,7 @@ func handleTx(request []byte, bc *bcm.BlockChain){
 		// 中心结点不会挖矿，向其他结点广播交易
 		for _, node := range knownNodes {
 			if node != nodeAddress && node != payload.Addrfrom{
+				fmt.Printf("Need to send inv command to %s", node)
 				sendInv(node, "tx", [][]byte{tx.ID})
 			}
 		}
@@ -249,6 +262,7 @@ func handleTx(request []byte, bc *bcm.BlockChain){
 			// 向周围结点广播这个新区块
 			for _, node := range knownNodes {
                 if node != nodeAddress {
+					fmt.Printf("Need to send inv command to %s", node)
 					sendInv(node, "block", [][]byte{newBlock.Hash})
 				}
             }

@@ -7,10 +7,10 @@ type inventory struct {
 	Items [][]byte // 区块/交易的哈希列表,这就是库存的含义
 }
 
-func sendInv(addrfrom, t string, items [][]byte) {
+func sendInv(toAddr, t string, items [][]byte) {
     // TODO: 发送inv
-	payload := gobEncode(inventory{Addrfrom: addrfrom, Type: t, Items: items})
+	payload := gobEncode(inventory{Addrfrom: nodeAddress, Type: t, Items: items})
     request := append(commandToBytes("inv"), payload...)
-	sendData(addrfrom, request)
+	sendData(toAddr, request)
 }
 

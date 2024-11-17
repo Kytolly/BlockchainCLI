@@ -27,7 +27,7 @@ func  NewCoinbaseTx(from, data string) *Transaction{
 	
 	tx := Transaction{ID:nil, VIn:[]TXInput{txin}, VOut:[]TXOutput{*txout}}
 	tx.SetID()
-	slog.Debug("coinbase built", "txid", fmt.Sprintf("%x", tx.ID))
+	slog.Debug("coinbase build", "txid", fmt.Sprintf("%x", tx.ID))
 
 	return &tx
 }
@@ -53,5 +53,3 @@ func (tx *Transaction) Hash() []byte {
 	hash := sha256.Sum256(txCopy.Serialize())
 	return hash[:]
 }
-
-

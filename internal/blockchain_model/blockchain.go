@@ -12,7 +12,6 @@ import (
 )
 
 var genesisCoinbaseData = st.GenesisCoinbaseData
-var dbFile = st.ChainDbFile
 var blocksBucket = st.BlockBucket
 
 type BlockChain struct{
@@ -107,10 +106,10 @@ func (bc *BlockChain) AddBlock(block *bm.Block) {
 }
 
 
-func NewBlockChain(nodeID string) *BlockChain {
-	address := nodeID
+func NewBlockChain(address, nodeID string) *BlockChain { 
 	//TODO: 创建一个新的区块链
-	if dbExists(){
+	dbFile := fmt.Sprintf(st.ChainDbFile, nodeID)
+	if dbExists(dbFile){
 		slog.Info("BlockChain already exists")
 		os.Exit(1) 
 	}
@@ -118,7 +117,7 @@ func NewBlockChain(nodeID string) *BlockChain {
 	var tip []byte
 	db, err := bolt.Open(dbFile, 0600, nil) 
 	if err != nil {
-		slog.Warn("Failed to open chain dbfile")
+		slog.Error("Failed to open chain dbfile")
 		return nil
 	}
 
@@ -154,14 +153,15 @@ func NewBlockChain(nodeID string) *BlockChain {
 	return &bc
 }
 
-func GetBlockChain() *BlockChain {
-	//TODO: 利用已创建的区块链
-	if !dbExists() {
+func GetBlockChain(nodeID string) *BlockChain {
+	//TODO: 利用已创建的创世区块构建区块链
+	dbFile := fmt.Sprintf(st.ChainDbFile, nodeID)
+	if !dbExists(dbFile) {
 		slog.Info("BlockChain not exists")
 		return nil 
 	}
 	var tip []byte
-	db, err := bolt.Open(dbFile, 0000, nil) 
+	db, err := bolt.Open(dbFile, 0600, nil) 
 	if err != nil {
 		slog.Info(err.Error())
 		return nil

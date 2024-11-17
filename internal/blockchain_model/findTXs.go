@@ -110,7 +110,6 @@ func(bc *BlockChain) FindMapOfPrevTransactions(tx *ts.Transaction)map[string]ts.
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
 			slog.Info(err.Error())
-			continue
 		}
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}

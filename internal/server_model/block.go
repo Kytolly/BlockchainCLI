@@ -9,9 +9,9 @@ type block struct {
 	Block []byte
 }
 
-func sendBlock(addrfrom string, bk *bm.Block) {
+func sendBlock(toAddr string, bkd *bm.Block) {
 	// TODO： 发送区块数据
-	payload := gobEncode(block{Addrfrom: addrfrom, Block: bk.Serialize()})
+	payload := gobEncode(block{Addrfrom: nodeAddress, Block: bkd.Serialize()})
     request := append(commandToBytes("block"), payload...)
-	sendData(addrfrom, request)
+	sendData(toAddr, request)
 }

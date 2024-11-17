@@ -13,16 +13,10 @@ import (
 type CLI struct{
 	BC *bcm.BlockChain
 }
-var nodeID string
+var nodeID = st.NODE_ID
 
 func(cli *CLI) Run(){
 	fmt.Println("Welcome to the blockchain CLI!")
-
-	nodeID = os.Getenv("NODE_ID")
-	if nodeID == "" {
-		fmt.Printf("NODE_ID env. var is not set!")
-		os.Exit(1)
-	}
 
 	var err error
 	cli.validateArgs()
@@ -60,7 +54,7 @@ func(cli *CLI) Run(){
         err = listCmd.Parse(os.Args[2:])
 	case "print":
 		err = printCmd.Parse(os.Args[2:])
-	case "reinex":
+	case "reindex":
 		err = reindexCmd.Parse(os.Args[2:])
     case "start":
 		err = startCmd.Parse(os.Args[2:])

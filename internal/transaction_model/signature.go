@@ -69,10 +69,9 @@ func(tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	for inID, vin := range tx.VIn {
 		// 所有的输入都应该要通过验证
 		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
-		txCopy.VIn[inID].PubKey = prevTx.VOut[vin.Vout].PubKeyHash
-		txCopy.ID = txCopy.Hash()
 		txCopy.VIn[inID].Signature = nil 
-		txCopy.VIn[inID].PubKey = nil
+		txCopy.VIn[inID].PubKey = prevTx.VOut[vin.Vout].PubKeyHash
+		txCopy.ID = txCopy.Hash() 
 
 		r := big.Int{}
 		s := big.Int{}
@@ -90,6 +89,7 @@ func(tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 		if !ecdsa.Verify(&rawPubKey, txCopy.ID, &r, &s) {
 			return false
 		}
+		txCopy.VIn[inID].PubKey = nil
 	}
 	return true
 }

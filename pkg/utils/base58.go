@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"log/slog"
 	"math/big"
 )
 
@@ -54,7 +55,8 @@ func Base58Decode(input []byte) []byte {
     for _, b := range payload {
         charIndex := bytes.IndexByte(b58Alphabet, b)
         if charIndex < 0 {
-            panic("Invalid Base58 character")
+            // panic("Invalid Base58 character")
+            slog.Error("Invalid Base58 character, maybe check the address!")
         }
         result.Mul(result, big.NewInt(58))
         result.Add(result, big.NewInt(int64(charIndex)))
