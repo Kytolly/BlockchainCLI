@@ -76,6 +76,7 @@ func(bc *BlockChain) VerifyTransaction(tx *ts.Transaction)bool{
 		return true
 	}
 	prevTXs := bc.FindMapOfPrevTransactions(tx)
+	fmt.Println("find prev Txs")
 	return tx.Verify(prevTXs)
 }
 

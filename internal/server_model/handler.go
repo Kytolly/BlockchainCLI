@@ -234,9 +234,13 @@ func handleTx(request []byte, bc *bcm.BlockChain){
 		// 矿工结点开始挖矿，打包内存池的交易，生成新的区块，加入区块链
 			// 验证交易
 			var txs []*ts.Transaction
+			// fmt.Printf("len of mempool=%v\n", len(mempool))
 			for id := range mempool {
 				tx := mempool[id]
+				// fmt.Printf("now tx=%x\n", tx)
+				fmt.Printf("now tx=%v\n", tx.String())
 				if bc.VerifyTransaction(&tx){
+					fmt.Printf("Verification Success!")
 					txs = append(txs, &tx)
 				}
 			}

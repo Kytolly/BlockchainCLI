@@ -1,10 +1,11 @@
 package transaction_model
 
 import (
+	st "blockchain/pkg/setting"
 	"crypto/sha256"
 	"fmt"
 	"log/slog"
-	st"blockchain/pkg/setting"
+	"strings"
 )
 
 var subsidy = st.Subsidy;
@@ -52,4 +53,27 @@ func (tx *Transaction) Hash() []byte {
 	txCopy.ID = []byte{}
 	hash := sha256.Sum256(txCopy.Serialize())
 	return hash[:]
+}
+
+func (tx Transaction) String() string {
+	var lines []string
+
+	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.ID))
+
+	for i, input := range tx.VIn {
+
+		lines = append(lines, fmt.Sprintf("     Input %d:", i))
+		lines = append(lines, fmt.Sprintf("       TXID:      %x", input.Txid))
+		lines = append(lines, fmt.Sprintf("       Out:       %d", input.Vout))
+		lines = append(lines, fmt.Sprintf("       Signature: %x", input.Signature))
+		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
+	}
+
+	for i, output := range tx.VOut {
+		lines = append(lines, fmt.Sprintf("     Output %d:", i))
+		lines = append(lines, fmt.Sprintf("       Value:  %d", output.Value))
+		lines = append(lines, fmt.Sprintf("       Script: %x", output.PubKeyHash))
+	}
+
+	return strings.Join(lines, "\n")
 }
