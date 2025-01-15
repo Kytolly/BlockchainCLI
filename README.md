@@ -1,7 +1,3 @@
-Sure, here's a more detailed README in English for your Blockchain CLI project:
-
----
-
 # Blockchain CLI (UESTC-Go语言和区块链技术-期末设计)
 
 ## Introduction
